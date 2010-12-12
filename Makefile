@@ -9,7 +9,7 @@ OBJS = webserver.o vector.o
 
 -include $(OBJS:.o=.d)
 
-myserver: $(OBJS)
+cgiserver: $(OBJS)
 	$(CC) -o $@ $(CFLAGS) $(OBJS) $(LIBS)
 
 %.d: %.c
