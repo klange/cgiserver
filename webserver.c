@@ -20,8 +20,8 @@
  *   2. Redistributions in binary form must reproduce the above copyright
  *      notice, this list of conditions and the following disclaimers in the
  *      documentation and/or other materials provided with the distribution.
- *   3. Neither the names of <NAME OF DEVELOPMENT GROUP>, <NAME OF
- *      INSTITUTION>, nor the names of its contributors may be used to endorse
+ *   3. Neither the names of Kevin Lange, the University of Illinois Urbana-
+ *      Champaign, nor the names of its contributors may be used to endorse
  *      or promote products derived from this Software without specific prior
  *      written permission.
  * 
