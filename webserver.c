@@ -45,7 +45,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <assert.h>
-#include <pthread.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <signal.h>
