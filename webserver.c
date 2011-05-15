@@ -479,7 +479,7 @@ _unsupported:
 		}
 
 		if (!filename || strstr(filename, "'") || strstr(filename," ") ||
-			(querystring && (strstr(querystring, "'") || strstr(querystring," ")))) {
+			(querystring && strstr(querystring," "))) {
 			/*
 			 * If a filename wasn't specified, we received
 			 * an invalid or malformed request and we should
