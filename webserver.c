@@ -1072,6 +1072,8 @@ _use_file:
 					fprintf(socket_stream, "Content-Type: image/gif\r\n");
 				} else if (!strcmp(ext,".pdf")) {
 					fprintf(socket_stream, "Content-Type: application/pdf\r\n");
+				} else if (!strcmp(ext,".manifest")) {
+					fprintf(socket_stream, "Content-Type: text/cache-manifest\r\n");
 				} else {
 					fprintf(socket_stream, "Content-Type: text/unknown\r\n");
 				}
