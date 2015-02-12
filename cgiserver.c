@@ -54,9 +54,6 @@
 #include <arpa/inet.h>
 #include <ctype.h>
 
-#include "webserver.h"
-#include "vector.h"
-
 #define PORT          80     /* Server port */
 #define HEADER_SIZE   10240L /* Maximum size of a request header line */
 #define CGI_POST      10240L /* Buffer size for reading POST data to CGI */
@@ -148,12 +145,51 @@ void handleShutdown(int sig) {
 }
 
 /*
+ * Resizeable vector
+ */
+typedef struct {
+	void ** buffer;
+	unsigned int size;
+	unsigned int alloc_size;
+} vector_t;
+
+#define INIT_VEC_SIZE 1024
+
+vector_t * alloc_vector(void) {
+	vector_t* v = (vector_t *) malloc(sizeof(vector_t));
+	v->buffer = (void **) malloc(INIT_VEC_SIZE * sizeof(void *));
+	v->size = 0;
+	v->alloc_size = INIT_VEC_SIZE;
+
+	return v;
+}
+
+void free_vector(vector_t* v) {
+	free(v->buffer);
+	free(v);
+}
+
+void vector_append(vector_t * v, void * item) {
+	if(v->size == v->alloc_size) {
+		v->alloc_size = v->alloc_size * 2;
+		v->buffer = (void **) realloc(v->buffer, v->alloc_size * sizeof(void *));
+	}
+
+	v->buffer[v->size] = item;
+	v->size++;
+}
+
+void * vector_at(vector_t * v, unsigned int idx) {
+	return idx >= v->size ? NULL : v->buffer[idx];
+}
+
+/*
  * Delete a vector
  * Free its contents and then it.
  */
 void delete_vector(vector_t * vector) {
 	unsigned int i = 0;
-	for (i = 0; i < vector_size(vector); ++i) {
+	for (i = 0; i < vector->size; ++i) {
 		free(vector_at(vector, i));
 	}
 	free_vector(vector);
@@ -294,7 +330,7 @@ void *handleRequest(void *socket) {
 		 * Process headers
 		 */
 		unsigned int i = 0;
-		for (i = 0; i < vector_size(queue); ++i) {
+		for (i = 0; i < queue->size; ++i) {
 			char * str = (char*)(vector_at(queue,i));
 
 			/*
