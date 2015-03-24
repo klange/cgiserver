@@ -255,7 +255,7 @@ void *handleRequest(void *socket) {
 	FILE *socket_stream = NULL;
 	socket_stream = fdopen(request->fd, "r+");
 	if (!socket_stream) {
-		fprintf(stderr,"Ran out of a file descriptors, can respond to request.\n");
+		fprintf(stderr,"Ran out of a file descriptors, can not respond to request.\n");
 		goto _disconnect;
 	};
 
