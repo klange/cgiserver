@@ -35,6 +35,8 @@
  * 
  */
 
+#define _POSIX_SOURCE
+#define _BSD_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -956,7 +958,7 @@ _use_file:
 						 */
 						char * in = fgets(buf, CGI_BUFFER - 2, cgi_pipe);
 						if (!in) {
-							fprintf(stderr,"[warn] Read nothing [%d on %p %d %d]\n", ferror(cgi_pipe), cgi_pipe, cgi_pipe_w[1], _pid);
+							fprintf(stderr,"[warn] Read nothing [%d on %p %d %d]\n", ferror(cgi_pipe), (void *)cgi_pipe, cgi_pipe_w[1], _pid);
 							perror("[warn] Specifically");
 							buf[0] = '\0';
 							break;
@@ -976,7 +978,6 @@ _use_file:
 							break;
 						}
 						fwrite(in, 1, strlen(in), socket_stream);
-						//fprintf(socket_stream, "%s", buf);
 						++j;
 					}
 					if (j < 1) {

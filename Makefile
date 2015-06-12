@@ -1,4 +1,4 @@
 LDLIBS := -lpthread
-CFLAGS := -g
+CFLAGS := -g -pedantic -std=c99
 
 all: cgiserver
