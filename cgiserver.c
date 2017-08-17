@@ -846,7 +846,9 @@ _use_file:
 						struct hostent * client;
 						client = gethostbyaddr((const char *)&request->address.sin_addr.s_addr,
 								sizeof(request->address.sin_addr.s_addr), AF_INET);
-						setenv("REMOTE_HOST", client->h_name, 1);
+						if (client != NULL) {
+							setenv("REMOTE_HOST", client->h_name, 1);
+						}
 						setenv("REMOTE_ADDR", inet_ntoa(request->address.sin_addr), 1);
 						if (c_cookie) {
 							setenv("HTTP_COOKIE", c_cookie, 1);
@@ -864,7 +866,7 @@ _use_file:
 						char executable[1024];
 						executable[0] = '\0';
 						sprintf(executable, "./%s", _filename);
-						execlp(executable, executable,(char *)0);
+						execlp(executable, executable, (char *)NULL);
 
 						/*
 						 * The CGI application failed to execute. ;_;
