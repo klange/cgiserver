@@ -559,6 +559,20 @@ _unsupported:
 		}
 
 		/*
+		 * Reject paths that attempt to make relative jumps.
+		 * HTTP clients are not supposed to request files like this, so this should be valid.
+		 * Because we already put PAGES_DIRECTORY at the front, we should be able to guarantee
+		 * that there is a / before any user-supplied directory, so contains("/../") or endswith("/..")
+		 * should be an appropriate restriction on user-supplied paths.
+		 */
+		if (strstr(_filename, "/../") || (strstr(_filename, "/..") == _filename + strlen(_filename) - 3)) {
+			generic_response(socket_stream, "400 Bad Request", "Bad request");
+			free(_filename);
+			delete_vector(queue);
+			goto _disconnect;
+		}
+
+		/*
 		 * ext: the file extension, or NULL if it lacks one
 		 */
 		ext = filename + 1;
