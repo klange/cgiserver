@@ -769,7 +769,11 @@ _use_file:
 						 * Set pipes
 						 */
 						dup2(cgi_pipe_r[0],STDIN_FILENO);
+						close(cgi_pipe_r[0]);
+						close(cgi_pipe_r[1]);
 						dup2(cgi_pipe_w[1],STDOUT_FILENO);
+						close(cgi_pipe_w[0]);
+						close(cgi_pipe_w[1]);
 						/*
 						 * This is actually cheating on my pipe.
 						 */
