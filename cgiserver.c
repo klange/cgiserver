@@ -36,6 +36,7 @@
  */
 
 #define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,11 +46,10 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <assert.h>
 #include <dirent.h>
 #include <fcntl.h>
+#include <getopt.h>
 #include <signal.h>
-#include <dirent.h>
 #include <sys/wait.h>
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -82,7 +82,7 @@
 /*
  * Directory to serve out of.
  */
-#define PAGES_DIRECTORY "pages"
+char * pages_directory = "pages";
 #define VERSION_STRING  "klange/0.5"
 
 /*
@@ -92,7 +92,7 @@ struct socket_request {
 	int                fd;       /* Socket itself */
 	socklen_t          addr_len; /* Length of the address type */
 	struct sockaddr_in address;  /* Remote address */
-	pthread_t          thread;   /* Handler thread */
+	pthread_t thread;   /* Handler thread */
 };
 
 /*
@@ -118,7 +118,7 @@ int port;
  * Last unaccepted socket pointer
  * so we can free it.
  */
-void * _last_unaccepted;
+void *_last_unaccepted;
 
 /*
  * Better safe than sorry,
@@ -530,8 +530,8 @@ _unsupported:
 		 * Get some important information on the requested file
 		 * _filename: the local file name, relative to `.`
 		 */
-		_filename = calloc(sizeof(char) * (strlen(PAGES_DIRECTORY) + strlen(filename) + 2), 1);
-		strcat(_filename, PAGES_DIRECTORY);
+		_filename = calloc(sizeof(char) * (strlen(pages_directory) + strlen(filename) + 2), 1);
+		strcat(_filename, pages_directory);
 		strcat(_filename, filename);
 		if (strstr(_filename, "%")) {
 			/*
@@ -715,15 +715,24 @@ _use_file:
 				/*
 				 * Could not open file - 404. (Perhaps 403)
 				 */
-				content = fopen(PAGES_DIRECTORY "/404.htm", "rb");
+				char path404[1024] = {0};
+				snprintf(path404, 1024, "%s/404.htm", pages_directory);
+
+				content = fopen(path404, "rb");
 
 				if (!content) {
-					/*
-					 * If the expected default 404 page was not found
-					 * return the generic one and move to the next response.
-					 */
-					generic_response(socket_stream, "404 File Not Found", "The requested file could not be found.");
-					goto _next;
+					snprintf(path404, 1024, "%s/404.html", pages_directory);
+
+					content = fopen(path404, "rb");
+
+					if (!content) {
+						/*
+						 * If the expected default 404 page was not found
+						 * return the generic one and move to the next response.
+						 */
+						generic_response(socket_stream, "404 File Not Found", "The requested file could not be found.");
+						goto _next;
+					}
 				}
 
 				/*
@@ -731,9 +740,9 @@ _use_file:
 				 * and continue to load it.
 				 */
 				fprintf(socket_stream, "HTTP/1.1 404 File Not Found\r\n");
-				_filename = realloc(_filename, strlen(PAGES_DIRECTORY "/404.htm") + 1);
+				_filename = realloc(_filename, strlen(path404) + 1);
 				_filename[0] = '\0';
-				strcat(_filename, PAGES_DIRECTORY "/404.htm");
+				strcat(_filename, path404);
 				ext = strstr(_filename, ".");
 			} else {
 				/*
@@ -785,7 +794,8 @@ _use_file:
 						_filename[-1] = '\0';
 						char docroot[1024];
 						getcwd(docroot, 1023);
-						strcat(docroot, "/" PAGES_DIRECTORY);
+						strcat(docroot, "/");
+						strcat(docroot, pages_directory);
 						chdir(dir);
 
 						/*
@@ -1215,8 +1225,24 @@ int main(int argc, char ** argv) {
 	 * Determine what port we should run on.
 	 */
 	port = PORT;
-	if (argc > 1) {
-		port = atoi(argv[1]);
+	int c;
+
+	while ((c = getopt(argc, argv, "p:f:h")) != -1) {
+		switch (c) {
+		case 'p':
+			port = atoi(optarg);
+			break;
+		case 'f':
+			pages_directory = optarg;
+			break;
+		case 'h':
+			fprintf(stderr, "%s [-p PORT] [-f FILE_ROOT]\n", argv[0]);
+			break;
+		case '?':
+		default:
+			fprintf(stderr, "Unknown argument, try -h\n");
+			return 1;
+		}
 	}
 
 	/*
@@ -1250,7 +1276,7 @@ int main(int argc, char ** argv) {
 	 */
 	listen(serversock, 50);
 	printf("[info] Listening on port %d.\n", port);
-	printf("[info] Serving out of '" PAGES_DIRECTORY "'.\n");
+	printf("[info] Serving out of '%s'.\n", pages_directory);
 	printf("[info] Server version string is " VERSION_STRING ".\n");
 
 	/*
@@ -1276,7 +1302,8 @@ int main(int argc, char ** argv) {
 	/*
 	 * Start accepting connections
 	 */
-	while (1) {
+	while (1)
+	{
 		/*
 		 * Accept an incoming connection and pass it on to a new thread.
 		 */
